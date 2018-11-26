@@ -76,14 +76,15 @@ people <- merge(people,data.table('SDFB Person ID'=names(closeness(g)),clo=unlis
 people <- merge(people,data.table('SDFB Person ID'=names(eigen_centrality(g)$`vector`),ec=unlist(eigen_centrality(g)$`vector`)),all.x = T)
 people <- merge(people,data.table('SDFB Person ID'=names(page_rank(g)$`vector`),pr=unlist(page_rank(g)$`vector`)),all.x = T)
 
-enemyn <- rbind(edgelist[,.(from_ID,relationship_type_name)],edgelist[,.(to_ID,relationship_type_name)])
-edgelist <- rbind(edgelist, edgelistT)
-#dim(edgelist)
-edgelist[relationship_type_name %in% c("Rival of", "Enemy of"), enemies := .N,from_ID]
-enemies <- edgelist[relationship_type_name %in% c("Rival of", "Enemy of"),.N,from_ID]
-setnames[edgelist,'N','enemies']
+enemyn <- rbind(edgelist[,.('SDFB Person ID'=from_ID,relationship_type_name)],edgelist[,.('SDFB Person ID'=to_ID,relationship_type_name)])
+enemyn[relationship_type_name %in% c("Rival of", "Enemy of"), .N,`SDFB Person ID`]
+enemyn[,`SDFB Person ID`:=as.character(`SDFB Person ID`)]
+people <- merge(people,enemyn[relationship_type_name %in% c("Rival of", "Enemy of"), .N,`SDFB Person ID`],all.x = T)
+setnames(people,'N','enemies')
+people[is.na(enemies)==1,enemies:=0]
 
-model1 <- lm(lifespan ~  bet + level + Gender + ratio, data = people)
+
+model1 <- lm(lifespan ~  bet + level + Gender + ratio + enemies, data = people)
 summary(model1)
 # -------------------------------------------------------------
 
