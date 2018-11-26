@@ -64,7 +64,7 @@ king_ids <- people[which(grepl('king',people$Historical.Significance,ignore.case
 king_ids <- king_ids[,c('SDFB.Person.ID','Display.Name','Historical.Significance','Extant.Death.Year')]
 king_ids$Extant.Death.Year <- as.numeric(king_ids$Extant.Death.Year)
 # Remove row 4, 14, 15, 16, 18, 19, 20, 21, 23, 24
-king_ids <- king_ids[-(c(4, 14, 15, 16, 18, 19, 20, 21, 23, 24)),]
+king_ids <- king_ids[-(c(4, 5, 14, 15, 16, 18, 19, 20, 21, 23, 24)),]
 
 queen_ids <- people[which(grepl('queen',people$Historical.Significance,ignore.case=TRUE)),]
 queen_ids <- queen_ids[,c('SDFB.Person.ID','Display.Name','Historical.Significance','Extant.Death.Year')]
@@ -77,26 +77,49 @@ queen_ids <- queen_ids[-c(11, 13, 14, 15, 17, 20, 24, 27, 30, 31, 32, 36, 37, 38
 
 # Create the network when King was alive
 # Identify a king
-this_king <- as.character(king_ids[2,1])
-this_year <- king_ids[2,4]
-year_range <- seq(this_year-5,this_year+5)
+close_king_list <- list()
 
-for(i in 1:length(year_range)) {
-  year <- year_range[i]
-  this_king <- 
-  # Subset data by relationships existed when the king was alive
-  relation <- dt_relation[which(end_year >= year & start_year < year),]
+length(king_ids)
+
+for(j in 1:nrow(king_ids)) {
+  j <- 5
+this_king <- as.character(king_ids[j,1])
+this_year <- king_ids[j,4]
+year_range <- seq(this_year-5,this_year+5)
+adjacent <- c()
+close_vector <- c()
+
+  for(i in 1:length(year_range)) {
+    year <- year_range[i]
+    # Subset data by relationships existed when the king was alive
+    relation <- dt_relation[which(end_year > year & start_year =< year),]
+    
+    # Create the network
+    network_this <- graph_from_data_frame(relation[,c('from_ID','to_ID')], directed = FALSE)
+    network_this <- simplify(network_this, remove.multiple = TRUE, remove.loops = TRUE)
+    
+    # Find the neighbors of the king
+    if(i == 1) {
+      adjacent <- neighbors(network_this, this_king)
+    }
+    
+    # Calculate the closeness centrality of all those neighbors
+    close_neighbor <- closeness(network_this, vids=V(network_this))
+    loc <- which(names(close_neighbor) %in% as.character(names(adjacent)))
+    avg_close <- mean(close_neighbor[loc])
+    
+    close_vector <- c(close_vector, avg_close)
+  }
   
-  # Create the network
-  network_this <- graph_from_data_frame(relation[,c('from_ID','to_ID')], directed = FALSE)
-  network_this <- simplify(network_this, remove.multiple = TRUE, remove.loops = TRUE)
-  
-  # Find the neighbors of the king
-  adjacent <- neighbors(network_this, this_king)
-  
-  # Calculate the closeness centrality of all those neighbors
-  close_neighbor <- closeness(network_this, vids=adjacent)
-  avg_close <- mean(close_old)
-  avg_close
-  
+   close_king_list[[j]] <- close_vector
 }
+
+close_king_list
+
+neighbors(network_total, this_king)
+neighbors(network_this, this_king)
+
+king_ids[5,]
+dt_relation[dt_relation$from_ID == this_king,]
+dt_relation[dt_relation$to_ID == this_king,]
+this_year
