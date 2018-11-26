@@ -1,0 +1,64 @@
+SDFB Relationship Type ID,Relationship Type Name,Description,Relationship Type Inverse,Created By,Created At
+11,Pupil/Student of,"A pupil, student, or mentee",12,3,2015-02-25 00:51:49 UTC
+3,Acquaintance of,two people who knew each other casually,3,3,2015-02-25 00:51:49 UTC
+1,Enemy of,two people who felt animnosity towards each other,1,3,2015-02-25 00:51:49 UTC
+5,Knew in passing,two people who knew of each other and met at least once,5,3,2015-02-25 00:51:49 UTC
+7,Friend of,two people who share a mutual friendship (to a lesser degree than a close friendship),7,3,2015-02-25 00:51:49 UTC
+13,Aunt/Uncle of,the full or half-sibling of a parent,15,3,2015-02-25 00:51:49 UTC
+15,Niece/Nephew of,the child of a full or half sibling,13,3,2015-02-25 00:51:49 UTC
+16,Child-in-law of,the spouse of a child,20,3,2015-02-25 00:51:49 UTC
+20,Parent-in-law of,the parent of a spouse,16,3,2015-02-25 00:51:49 UTC
+18,Heir(ess) of,a person who received money or property in another person's will,22,3,2015-02-25 00:51:49 UTC
+25,Child of,biological child of another person,29,3,2015-02-25 00:51:49 UTC
+27,Grandchild of,biological grandchild of another person,28,3,2015-02-25 00:51:49 UTC
+28,Grandparent of,biological grandparent of another person,27,3,2015-02-25 00:51:49 UTC
+33,Godsibling of,two people who share a godparent,33,3,2015-02-25 00:51:49 UTC
+34,Client of,"a person who receives political, monetary, or other support from another person",38,3,2015-02-25 00:51:49 UTC
+35,Collaborated with,two people who worked together to create something,35,3,2015-02-25 00:51:49 UTC
+40,Employed by,a person who receives financial compensation for their work from another person,41,3,2015-02-25 00:51:49 UTC
+41,Employer of,a person who gives financial compensation for another person for their work,40,3,2015-02-25 00:51:49 UTC
+45,Engaged to,two people who have formally agreed to marry in the future; also known as betrothed to,45,3,2015-02-25 00:51:49 UTC
+48,Priest of,a person who cares for the parish of another person,47,3,2015-02-25 00:51:49 UTC
+50,Lived with,two people who lived in the same location at the same time,50,3,2015-02-25 00:51:50 UTC
+105,Step-sibling of,two people who are biologically unrelated but whose parents or step-parents have married,105,4,2015-06-17 17:50:59 UTC
+32,Godparent of,a person who is the religious godparent of another person; usually established at baptism,31,3,2015-02-25 00:51:49 UTC
+31,Godchild of,a person who is the religious godchild of another person; usually established at baptism,32,3,2015-02-25 00:51:49 UTC
+2,Rival of,two people in competition for the same limited resource,2,3,2015-02-25 00:51:49 UTC
+4,Met,two people who met at least once,4,3,2015-02-25 00:51:49 UTC
+6,Close friend of,two people who share a close mutual friendship,6,3,2015-02-25 00:51:49 UTC
+9,Had child with,"two people who had sexual intercourse, conceived, and bore a child to term",9,3,2015-02-25 00:51:49 UTC
+12,Mentor/Teacher of,"a teacher, mentor, or other advisor",11,3,2015-02-25 00:51:49 UTC
+10,Sexual partner of,two people who had sexual intercourse,10,3,2015-02-25 00:51:49 UTC
+14,Cousin of,"two people who acknowledged a cousin relationship, including but not limited to first, second, and third cousins, and cousins who are a generation or two removed",14,3,2015-02-25 00:51:49 UTC
+21,Sibling-in-law of,the sibling of a spouse or the spouse of a sibling,21,3,2015-02-25 00:51:49 UTC
+19,Other-in-law of,"in-law relationships other than parent-, sibling-, and child-in-law",19,3,2015-02-25 00:51:49 UTC
+22,Testator to,a person who left another person money or property in their will,18,3,2015-02-25 00:51:49 UTC
+17,Guardian of,a person who was legally responsible for the care and raising of another person; this includes but is not limited to relationships established by the Court of Wards,23,3,2015-02-25 00:51:49 UTC
+24,Great-grandparent of,biological great-grandparent of another person,26,3,2015-02-25 00:51:49 UTC
+26,Great-grandchild of,biological great-grandchild of another person,24,3,2015-02-25 00:51:49 UTC
+29,Parent of,biological parent of another person,25,3,2015-02-25 00:51:49 UTC
+30,Sibling of,two people who share at least one biological parent (full- and half-siblings),30,3,2015-02-25 00:51:49 UTC
+38,Patron of,"a person who gives political, monetary, or other support to another person",34,3,2015-02-25 00:51:49 UTC
+36,Colleague of,two people who work in the same environment,36,3,2015-02-25 00:51:49 UTC
+37,Coworker of,two people who work together in the same business,37,3,2015-02-25 00:51:49 UTC
+39,Apprentice of,a person who has been legally bound as an apprentice to another person,42,3,2015-02-25 00:51:49 UTC
+42,Master of,a person who has legally bound another person as an apprentice,39,3,2015-02-25 00:51:49 UTC
+43,Rented from,a person who rents a property from another person,44,3,2015-02-25 00:51:49 UTC
+44,Rented to,a person who rents a property to another person,43,3,2015-02-25 00:51:49 UTC
+46,Spouse of,"two people who have married in a religious ceremony; alternatively, two people who made future vows then had sexual intercourse",46,3,2015-02-25 00:51:49 UTC
+47,Parishoner of,a person who is in the parish of another person,48,3,2015-02-25 00:51:49 UTC
+59,Admired by,"a person who another person feels a sexual, intellectual, or other attraction towards",8,3,2015-02-25 00:51:50 UTC
+49,Other religious relationship,"two people with a religious relationship other than priest/parishoner, i.e. confessor",49,3,2015-02-25 00:51:50 UTC
+103,Step-parent of,the spouse of a parent or step-parent; not a biological relation,104,4,2015-05-05 22:05:43 UTC
+51,Neighbor of,two people who lived in adjacent or nearby locations at the same time,51,3,2015-02-25 00:51:50 UTC
+104,Step-child of,the child or step-child of a spouse; not a biological relation,103,4,2015-05-05 22:06:55 UTC
+8,Attracted to,"a person who feels a sexual, intellectual, or other attraction towards another person",59,3,2015-02-25 00:51:49 UTC
+23,Ward of,a person who was legally under the care of and raised by another person; this includes but is not limited to relationships established by the Court of Wards,17,3,2015-02-25 00:51:49 UTC
+107,Debtor of,Person who borrowed money from another person,106,4,2015-07-16 20:44:45 UTC
+106,Creditor of,Person who lent money to another person,107,4,2015-07-16 20:44:10 UTC
+109,Correspondent of ,A relationship through letters,109,5,2016-01-11 15:09:34 UTC
+111,Had as midwife,woman who had another person as their midwife,110,4,2016-01-23 17:24:29 UTC
+110,Midwife for,person who served as midwife for a person,111,5,2016-01-23 16:56:37 UTC
+113,Attended by,"i.e. a person's ladies-in-waiting, gentleman ushers, etc.",112,4,2016-01-23 17:52:05 UTC
+112,Attendant of,"i.e. ladies-in-waiting, gentlemen ushers, etc.",113,4,2016-01-23 17:51:18 UTC
+108,Schoolmate of,two people who were in a formal education setting together,108,5,2015-09-12 16:06:29 UTC
