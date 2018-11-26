@@ -23,13 +23,16 @@ unique(people$`Historical Significance`)  # Too many (~1400) different ones
 
 # Calculating for every person the number of enemy relationships they have
 length(edgelist$from_ID[edgelist$relationship_type_name %in% c("Rival of", "Enemy of")]) 
- 
-
-
-
-
-
-
+setkeyv(edgelist, c("relation_id", "from_ID", "to_ID"))
+# Rbinding with the from - to swapped in order to have the symetrical relationships
+edgelistT <- edgelist[,c(1,3,2,4,5,6,7,8,9,10)]
+edgelist <- rbind(edgelist, edgelistT)
+#dim(edgelist)
+edgelist[relationship_type_name %in% c("Rival of", "Enemy of"), enemies := .N,from_ID]
+enemies <- edgelist[relationship_type_name %in% c("Rival of", "Enemy of"),.N,from_ID]
+setkeyv(people, c("SDFB Person ID"))
+setkeyv(enemies, "from_ID")
+people2 <- merge(people, enemies, by.x = "SDFB Person ID", by.y = "from_ID", all.x = TRUE)
 
 #Animating network development over time:
 list_of_years <- sort(unique(vertices$Deal.Year))
