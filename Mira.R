@@ -1,4 +1,5 @@
 library(data.table)
+library(ggplot2)
 
 groups <- fread("SDFB_groups.csv")
 View(groups)
@@ -14,7 +15,7 @@ unique(edgelist$relationship_type_name) # 53 relationship types
 unique(edgelist$relationship_category) # Good 8 relationship categories
 # Categories of relationship types: "Affective", "Kinship", "Labor/Professional", "Religious", 
 # "Legal/Commercial", "Educational/Intellectual", "Political", "Spatial"  
-unique(edgelist$relationship_type_name[edgelist$relationship_category ==  "Religious"])
+unique(edgelist$relationship_type_name[edgelist$relationship_category ==  "Legal/Commercial"])
 # Spatial looks ok, includes living together, neighbours, attended
 # Political looks ok, includes clients and partrons of
 # "Educational/Intellectual" - schoolmates and correspondents
@@ -33,6 +34,104 @@ enemies <- edgelist[relationship_type_name %in% c("Rival of", "Enemy of"),.N,fro
 setkeyv(people, c("SDFB Person ID"))
 setkeyv(enemies, "from_ID")
 people2 <- merge(people, enemies, by.x = "SDFB Person ID", by.y = "from_ID", all.x = TRUE)
+
+# Homophily ---------------------------------------------------------------
+# (https://en.wikipedia.org/wiki/Network_homophily)
+# Homophily = based on node attributes, similar nodes may be more likely to attach to each other than dissimilar ones
+# Homophily in social relations may lead to a commensurate distance in networks leading to the creation of clusters that have been observed in social networking services 
+# Homophily is a key topic in network science as it can determine the speed of the diffusion of information and ideas.
+
+# Is number of cross-gender degrees <=> randomly expected cross-gender degrees
+
+# Calculating the number of cross-gender degrees in a certain year
+
+
+
+# If no homophily, then cross gender edges should be 2*(male/all nodes)*(female/all nodes)
+
+
+
+
+
+
+
+
+
+
+# Kinship nodes
+Kin <- edgelist[edgelist$relationship_category == "Kinship",c(2,3)]
+Kin = unique(Kin)
+# Kinship nodes + their 1st degrees
+KinExt <- edgelist[edgelist$from_ID %in% Kin$from_ID,c(2,3)]
+KinExt = unique(KinExt)
+# split into chunks in a list for each ego so the chunks can vary in size
+# only care about chunks with at least two rows, which represents two strong ties leaving a node
+KinExt[, min_two := .N > 1, by = "from_ID"]
+KinExt = KinExt[min_two==TRUE]
+KinExt = split(KinExt, by = "from_ID")
+
+# get potential friends of friends that would be implied by triadic closure
+# this is potential pairs of people that ego is connected to, when ego has more than one strong tie
+friends_of_friends = lapply(seq_along(KinExt), function(i) t(combn(KinExt[[i]]$to_ID, 2)))
+friends_of_friends = unique(do.call(rbind, friends_of_friends))
+# friends_of_friends contains all possible ties that should exist in the network
+
+# to satisfy strong triadic closure, all of these ties should be realized in the actual edgelist
+
+# using the symertical edgelist 
+KinExt <- unique(do.call(rbind, KinExt))
+  
+# do the scan of potential triads closed to ones that actually are closed in the real data
+fof = paste(friends_of_friends[,1],friends_of_friends[,2],sep=",")
+real = paste(KinExt$from_ID, KinExt$to_ID, sep=",")
+
+# shows which triples with two strong ties aren't closed
+fof[!(fof %in% real)]
+# and what proportion of strong triadic closure is realized
+mean(fof %in% real)
+
+
+# Religious nodes
+#save <- edgelist
+years <- sort(unique(save$start_year))
+closure <- data.table(year = years, mean_closure = 0)
+for (y in years) {
+  edgelist <- save[start_year <= y & end_year > y,]
+  Kin <- edgelist[relationship_category == "Religious",c(2,3)]
+  Kin = unique(Kin)
+# Kinship nodes + their 1st degrees
+  KinExt <- edgelist[edgelist$from_ID %in% Kin$from_ID,c(2,3)]
+  KinExt = unique(KinExt)
+# split into chunks in a list for each ego so the chunks can vary in size
+# only care about chunks with at least two rows, which represents two strong ties leaving a node
+  KinExt[, min_two := .N > 1, by = "from_ID"]
+  KinExt = KinExt[min_two==TRUE]
+  KinExt = split(KinExt, by = "from_ID")
+
+# get potential friends of friends that would be implied by triadic closure
+# this is potential pairs of people that ego is connected to, when ego has more than one strong tie
+  friends_of_friends = lapply(seq_along(KinExt), function(i) t(combn(KinExt[[i]]$to_ID, 2)))
+  friends_of_friends = unique(do.call(rbind, friends_of_friends))
+# friends_of_friends contains all possible triadic ties that should exist in the network
+
+# to satisfy strong triadic closure, all of these ties should be realized in the actual edgelist
+
+# do the scan of potential triads closed to ones that actually are closed in the real data
+  fof = paste(friends_of_friends[,1],friends_of_friends[,2],sep=",")
+  real = paste(edgelist$from_ID, edgelist$to_ID, sep=",")
+
+# shows which triples with two strong ties aren't closed
+# fof[!(fof %in% real)]
+# and what proportion of strong triadic closure is realized
+  obs <- mean(fof %in% real)
+  closure[year == y,mean_closure := obs] 
+}
+
+closure[is.na(mean_closure),2] = 0
+(cl <- ggplot(closure, aes(x=year, y =mean_closure)) +
+  geom_line())
+
+
 
 #Animating network development over time:
 list_of_years <- sort(unique(vertices$Deal.Year))
