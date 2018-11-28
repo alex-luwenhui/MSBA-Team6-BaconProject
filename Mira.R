@@ -221,7 +221,7 @@ for (y in years) {
 # Plotting the kinship Igraph
 
   edgelist <- save[start_year <= 1700 & end_year > 1700,]
-  Kin <- edgelist[relationship_category == "Kinship",c(2,3)]
+  Kin <- edgelist[relationship_category == "Religious",c(2,3)]
   Kin = unique(Kin)
   # Kinship nodes + their 1st degrees
   KinExt <- edgelist[edgelist$from_ID %in% Kin$from_ID,c(2,3)]
