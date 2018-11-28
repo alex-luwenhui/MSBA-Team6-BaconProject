@@ -1,5 +1,6 @@
 library(data.table)
 library(ggplot2)
+library(igraph)
 
 groups <- fread("SDFB_groups.csv")
 #View(groups)
@@ -34,7 +35,7 @@ enemies <- edgelist[relationship_type_name %in% c("Rival of", "Enemy of"),.N,fro
 setkeyv(people, c("SDFB Person ID"))
 setkeyv(enemies, "from_ID")
 people2 <- merge(people, enemies, by.x = "SDFB Person ID", by.y = "from_ID", all.x = TRUE)
-
+save <- edgelist
 # Homophily ---------------------------------------------------------------
 # (https://en.wikipedia.org/wiki/Network_homophily)
 # Homophily = based on node attributes, similar nodes may be more likely to attach to each other than dissimilar ones
@@ -216,6 +217,17 @@ for (y in years) {
           panel.grid.minor.x = element_blank(),
           panel.border = element_blank(),
           panel.background = element_blank()) )
+
+# Plotting the kinship Igraph
+
+  edgelist <- save[start_year <= 1700 & end_year > 1700,]
+  Kin <- edgelist[relationship_category == "Kinship",c(2,3)]
+  Kin = unique(Kin)
+  # Kinship nodes + their 1st degrees
+  KinExt <- edgelist[edgelist$from_ID %in% Kin$from_ID,c(2,3)]
+  KinExt = unique(KinExt)
+  gr <- graph.data.frame(KinExt,directed=FALSE)
+  plot(gr, vertex.label = NA, vertex.size = 2, layout=layout_with_graphopt)
 
 # "Affective"
 closure <- data.table(year = years, mean_closure = 0)
