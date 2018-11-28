@@ -70,6 +70,9 @@ dist = distances(mygraph3)
 dist[dist == Inf] = nrow(dist)
 mdscale3 = cmdscale(dist, k = 2)
 
+mdscale <- data.table(x1 = mdscale3[,1], x2 = mdscale3[,2], idx = c(1:3618))
+write.csv(mdscale, file = "mdscale1700.csv", row.names = FALSE)
+
 write.csv(mdscale1, file = "mdscale_1500.csv", row.names = FALSE)
 write.csv(mdscale2, file = "mdscale_1600.csv", row.names = FALSE)
 write.csv(mdscale3, file = "mdscale_1700.csv", row.names = FALSE)
@@ -77,9 +80,9 @@ write.csv(mdscale3, file = "mdscale_1700.csv", row.names = FALSE)
 
 
 # correlation table ---------------------------------------------------------
-cor(centralities_1500[, .(degree,closeness,betweenness,eigen.cent)])
-cor(centralities_1600[, .(degree,closeness,betweenness,eigen.cent)])
-cor(centralities_1700[, .(degree,closeness,betweenness,eigen.cent)])
+write.csv(cor(centralities_1500[, .(degree,closeness,betweenness,eigen.cent)]), file = "cor1500.csv", row.names = FALSE)
+write.csv(cor(centralities_1600[, .(degree,closeness,betweenness,eigen.cent)]), file = "cor1600.csv", row.names = FALSE)
+write.csv(cor(centralities_1700[, .(degree,closeness,betweenness,eigen.cent)]), file = "cor1700.csv", row.names = FALSE)
 
 
 
