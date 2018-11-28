@@ -55,6 +55,113 @@ people2 <- merge(people, enemies, by.x = "SDFB Person ID", by.y = "from_ID", all
 
 
 
+# Triadic closure of the entire network -----------------------------------
+save <- edgelist
+years <- sort(unique(save$start_year))
+closure <- data.table(year = years, mean_closure = 0)
+for (y in years) {
+  edgelist <- save[start_year <= y & end_year > y,]
+  #Kin <- edgelist[,c(2,3)]
+  #Kin = unique(Kin)
+  KinExt <- edgelist[,c(2,3)]
+  KinExt = unique(KinExt)
+  # Kinship nodes + their 1st degrees
+  #KinExt <- edgelist[edgelist$from_ID %in% Kin$from_ID,c(2,3)]
+  #KinExt = unique(KinExt)
+  # split into chunks in a list for each ego so the chunks can vary in size
+  # only care about chunks with at least two rows, which represents two strong ties leaving a node
+  KinExt[, min_two := .N > 1, by = "from_ID"]
+  KinExt = KinExt[min_two==TRUE]
+  KinExt = split(KinExt, by = "from_ID")
+  
+  # get potential friends of friends that would be implied by triadic closure
+  # this is potential pairs of people that ego is connected to, when ego has more than one strong tie
+  friends_of_friends = lapply(seq_along(KinExt), function(i) t(combn(KinExt[[i]]$to_ID, 2)))
+  friends_of_friends = unique(do.call(rbind, friends_of_friends))
+  # friends_of_friends contains all possible triadic ties that should exist in the network
+  
+  # to satisfy strong triadic closure, all of these ties should be realized in the actual edgelist
+  
+  # do the scan of potential triads closed to ones that actually are closed in the real data
+  fof = paste(friends_of_friends[,1],friends_of_friends[,2],sep=",")
+  real = paste(edgelist$from_ID, edgelist$to_ID, sep=",")
+  
+  # shows which triples with two strong ties aren't closed
+  # fof[!(fof %in% real)]
+  # and what proportion of strong triadic closure is realized
+  obs <- mean(fof %in% real)
+  closure[year == y,mean_closure := obs] 
+}
+
+(ggplot(closure, aes(x=year, y =mean_closure)) +
+    geom_line() +
+    theme_bw() +
+    ylab("Mean triadic closure") +
+    xlab("") +
+    ylim(0,1) +  
+    theme(plot.title = element_text(hjust = 0.5))+
+    ggtitle("Mean triadic closure of the global network over time") +
+    theme(axis.line = element_line(colour = "black"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank()) )
+
+
+# Triadic closure of categories excluding their first degree conne --------
+save <- edgelist
+categories <- unique(edgelist$relationship_category) 
+years <- sort(unique(save$start_year))
+
+#Kinship
+closure <- data.table(year = years, mean_closure = 0)
+for (y in years) {
+  edgelist <- save[start_year <= y & end_year > y,]
+  KinExt <- edgelist[relationship_category == "Affective",c(2,3)]
+  KinExt = unique(KinExt)
+  # Kinship nodes + their 1st degrees
+  #KinExt <- edgelist[edgelist$from_ID %in% Kin$from_ID,c(2,3)]
+  #KinExt = unique(KinExt)
+  # split into chunks in a list for each ego so the chunks can vary in size
+  # only care about chunks with at least two rows, which represents two strong ties leaving a node
+  KinExt[, min_two := .N > 1, by = "from_ID"]
+  KinExt = KinExt[min_two==TRUE]
+  KinExt = split(KinExt, by = "from_ID")
+  
+  # get potential friends of friends that would be implied by triadic closure
+  # this is potential pairs of people that ego is connected to, when ego has more than one strong tie
+  friends_of_friends = lapply(seq_along(KinExt), function(i) t(combn(KinExt[[i]]$to_ID, 2)))
+  friends_of_friends = unique(do.call(rbind, friends_of_friends))
+  # friends_of_friends contains all possible triadic ties that should exist in the network
+  
+  # to satisfy strong triadic closure, all of these ties should be realized in the actual edgelist
+  
+  # do the scan of potential triads closed to ones that actually are closed in the real data
+  fof = paste(friends_of_friends[,1],friends_of_friends[,2],sep=",")
+  real = paste(edgelist$from_ID, edgelist$to_ID, sep=",")
+  
+  # shows which triples with two strong ties aren't closed
+  # fof[!(fof %in% real)]
+  # and what proportion of strong triadic closure is realized
+  obs <- mean(fof %in% real)
+  closure[year == y,mean_closure := obs] 
+}
+#closure[is.na(mean_closure),2] = 0
+(ggplot(closure, aes(x=year, y =mean_closure)) +
+    geom_line() +
+    theme_bw() +
+    ylab("") +
+    xlab("") +
+    ylim(0,1) +  
+    theme(plot.title = element_text(hjust = 0.5))+
+    ggtitle("Kinship category, only category members") +
+    theme(axis.line = element_line(colour = "black"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank()) )
+
+
 
 
 # Triadic closure of sub-networks -----------------------------------------
@@ -95,10 +202,20 @@ for (y in years) {
   obs <- mean(fof %in% real)
   closure[year == y,mean_closure := obs] 
 }
-closure[is.na(mean_closure),2] = 0
+#closure[is.na(mean_closure),2] = 0
 (ggplot(closure, aes(x=year, y =mean_closure)) +
     geom_line() +
-    ggtitle("Mean closure over time of the 'Kinship' category \n and their first degree connections"))
+    theme_bw() +
+    ylab("") +
+    xlab("") +
+    ylim(0,1) +  
+    theme(plot.title = element_text(hjust = 0.5))+
+    ggtitle("Kinship category") +
+    theme(axis.line = element_line(colour = "black"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank()) )
 
 # "Affective"
 closure <- data.table(year = years, mean_closure = 0)
@@ -133,10 +250,20 @@ for (y in years) {
   obs <- mean(fof %in% real)
   closure[year == y,mean_closure := obs] 
 }
-closure[is.na(mean_closure),2] = 0
+#closure[is.na(mean_closure),2] = 0
 (ggplot(closure, aes(x=year, y =mean_closure)) +
     geom_line() +
-    ggtitle("Mean closure over time of the 'Affective' category \n and their first degree connections"))
+    theme_bw() +
+    ylab("") +
+    xlab("") +
+    ylim(0,1) +  
+    theme(plot.title = element_text(hjust = 0.5))+
+    ggtitle("Affective category") +
+    theme(axis.line = element_line(colour = "black"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank()) )
 
 # "Labor/Professional"
 closure <- data.table(year = years, mean_closure = 0)
@@ -171,10 +298,20 @@ for (y in years) {
   obs <- mean(fof %in% real)
   closure[year == y,mean_closure := obs] 
 }
-closure[is.na(mean_closure),2] = 0
+#closure[is.na(mean_closure),2] = 0
 (ggplot(closure, aes(x=year, y =mean_closure)) +
     geom_line() +
-    ggtitle("Mean closure over time of the 'Labor/Professional' category \n and their first degree connections"))
+    theme_bw() +
+    ylab("") +
+    xlab("") +
+    ylim(0,1) +  
+    theme(plot.title = element_text(hjust = 0.5))+
+    ggtitle("Labor & Professional category") +
+    theme(axis.line = element_line(colour = "black"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank()) )
 
 # "Religious" 
 closure <- data.table(year = years, mean_closure = 0)
@@ -209,10 +346,20 @@ for (y in years) {
   obs <- mean(fof %in% real)
   closure[year == y,mean_closure := obs] 
 }
-closure[is.na(mean_closure),2] = 0
+#closure[is.na(mean_closure),2] = 0
 (ggplot(closure, aes(x=year, y =mean_closure)) +
     geom_line() +
-    ggtitle("Mean closure over time of the 'Religious' category \n and their first degree connections"))
+    theme_bw() +
+    ylab("") +
+    xlab("") +
+    ylim(0,1) +  
+    theme(plot.title = element_text(hjust = 0.5))+
+    ggtitle("Religious category") +
+    theme(axis.line = element_line(colour = "black"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank()) )
 
 # Legal/Commercial
 closure <- data.table(year = years, mean_closure = 0)
@@ -247,10 +394,20 @@ for (y in years) {
   obs <- mean(fof %in% real)
   closure[year == y,mean_closure := obs] 
 }
-closure[is.na(mean_closure),2] = 0
+#closure[is.na(mean_closure),2] = 0
 (ggplot(closure, aes(x=year, y =mean_closure)) +
     geom_line() +
-    ggtitle("Mean closure over time of the 'Legal/Commercial' category \n and their first degree connections"))
+    theme_bw() +
+    ylab("") +
+    xlab("") +
+    ylim(0,1) +  
+    theme(plot.title = element_text(hjust = 0.5))+
+    ggtitle("Legal & Commercial category") +
+    theme(axis.line = element_line(colour = "black"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank()) )
 
 # Educational/Intellectual
 closure <- data.table(year = years, mean_closure = 0)
@@ -288,7 +445,17 @@ for (y in years) {
 closure[is.na(mean_closure),2] = 0
 (ggplot(closure, aes(x=year, y =mean_closure)) +
     geom_line() +
-    ggtitle("Mean closure over time of the 'Educational/Intellectual' category \n and their first degree connections"))
+    theme_bw() +
+    ylab("") +
+    xlab("") +
+    ylim(0,1) +  
+    theme(plot.title = element_text(hjust = 0.5))+
+    ggtitle("Educational & Intellectual category") +
+    theme(axis.line = element_line(colour = "black"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank()) )
 
 # Political
 closure <- data.table(year = years, mean_closure = 0)
@@ -326,7 +493,17 @@ for (y in years) {
 closure[is.na(mean_closure),2] = 0
 (ggplot(closure, aes(x=year, y =mean_closure)) +
     geom_line() +
-    ggtitle("Mean closure over time of the 'Political' category \n and their first degree connections"))
+    theme_bw() +
+    ylab("") +
+    xlab("") +
+    ylim(0,1) +  
+    theme(plot.title = element_text(hjust = 0.5))+
+    ggtitle("Political category") +
+    theme(axis.line = element_line(colour = "black"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank()) )
 
 # Spatial
 closure <- data.table(year = years, mean_closure = 0)
@@ -364,4 +541,15 @@ for (y in years) {
 closure[is.na(mean_closure),2] = 0
 (ggplot(closure, aes(x=year, y =mean_closure)) +
     geom_line() +
-    ggtitle("Mean closure over time of the 'Spatial' category \n and their first degree connections"))
+    theme_bw() +
+    ylab("") +
+    xlab("") +
+    theme(plot.title = element_text(hjust = 0.5))+
+    ggtitle("Spatial category") +
+    theme(axis.line = element_line(colour = "black"),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.border = element_blank(),
+      panel.background = element_blank()) )
+
+
