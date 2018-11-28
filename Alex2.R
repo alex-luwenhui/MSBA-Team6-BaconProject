@@ -98,5 +98,7 @@ highest_eige_dt <- highest_eige_dt[, .N, by = ID]
 highest_eige_dt <- highest_eige_dt[order(-N), ]
 highest_eige_dt
 
+plot()
 
-
+temp = fread(file = "SDFB_people.csv")
+temp[`SDFB Person ID` == "10011681", ]
