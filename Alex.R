@@ -98,9 +98,9 @@ plot(names(b), unname(b), main="1600", xlab="coreness", ylab="number of nodes")
 plot(names(c), unname(c), main="1700", xlab="coreness", ylab="number of nodes")
 
 # method 4: multidimensional scaling
-plot(mdscale1[,1], mdscale1[,2])
-plot(mdscale2[,1], mdscale2[,2])
-plot(mdscale3[,1], mdscale3[,2])
+plot(mdscale1[,1], mdscale1[,2], main = "multidimensional scaling 1500")
+plot(mdscale2[,1], mdscale2[,2], main = "multidimensional scaling 1600")
+plot(mdscale3[,1], mdscale3[,2], main = "multidimensional scaling 1700")
 
 # method 5
 components = clusters(mygraph)
