@@ -217,7 +217,7 @@ for (y in years) {
           panel.grid.minor.x = element_blank(),
           panel.border = element_blank(),
           panel.background = element_blank()) )
-
+?geom_point
 # Plotting the kinship Igraph
 
   edgelist <- save[start_year <= 1700 & end_year > 1700,]
