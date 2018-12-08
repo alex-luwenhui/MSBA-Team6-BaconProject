@@ -4,6 +4,8 @@ library(igraph)
 library(ergm)
 library(intergraph)
 
+setwd("C:/Users/MJ/Documents/GitHub/MSBA-Team6-BaconProject")
+
 groups <- fread("SDFB_groups.csv")
 #View(groups)
 people <- fread("SDFB_people.csv")
@@ -30,10 +32,12 @@ length(edgelist$from_ID[edgelist$relationship_type_name %in% c("Rival of", "Enem
 setkeyv(edgelist, c("relation_id", "from_ID", "to_ID"))
 # Rbinding with the from - to swapped in order to have the symetrical relationships
 edgelistT <- edgelist[,c(1,3,2,4,5,6,7,8,9,10)]
+colnames(edgelistT)[2] <- "from_ID"
+colnames(edgelistT)[3] <- "to_ID"
 edgelist <- rbind(edgelist, edgelistT)
 dim(edgelist)   # connections repeating both ways because we are dealing with an undirected network
-edgelist[relationship_type_name %in% c("Rival of", "Enemy of"), enemies := .N,from_ID]
-enemies <- edgelist[relationship_type_name %in% c("Rival of", "Enemy of"),.N,from_ID]
+#edgelist[relationship_type_name %in% c("Rival of", "Enemy of"), enemies := .N,from_ID]
+#enemies <- edgelist[relationship_type_name %in% c("Rival of", "Enemy of"),.N,from_ID]
 setkeyv(people, c("SDFB Person ID"))
 setkeyv(enemies, "from_ID")
 people2 <- merge(people, enemies, by.x = "SDFB Person ID", by.y = "from_ID", all.x = TRUE)
@@ -48,7 +52,68 @@ save <- edgelist
 # Calculating the number of cross-gender degrees in a certain year
 # If no homophily, then cross gender edges should be 2*(male/all nodes)*(female/all nodes)
 
-# Looking at a 50 years period in the year 1550
+# Evaluating the network of king Henry VIII (10012119) and his father king Henry VII (10012118)
+
+# Getting the court of king Henry VII (1st and 2nd degree connections)
+HVII_1degree <- edgelist[from_ID == 10012118, c("from_ID", "to_ID")]
+HVII_2degree <- unique(as.data.frame(HVII_1degree[,to_ID]))
+colnames(HVII_2degree) <- "from_ID"
+to_ID <- unique(as.data.frame(edgelist[,c("from_ID","to_ID")]))
+HVII_2degree <- merge(HVII_2degree, to_ID, by = "from_ID") # all.x = FALSE, allowing this to exclude ppl who do not have a further connection  
+HVII_court <- unique(rbind(HVII_1degree, HVII_2degree)) # note that this does not include the reciprocated connection
+
+# and the court of his son king Henry VIII (1st and 2nd degree connections)
+HVII_1degree <- edgelist[from_ID == 10012119, c("from_ID", "to_ID")]
+HVII_2degree <- unique(as.data.frame(HVII_1degree[,to_ID]))
+colnames(HVII_2degree) <- "from_ID"
+to_ID <- unique(as.data.frame(edgelist[,c("from_ID","to_ID")]))
+HVII_2degree <- merge(HVII_2degree, to_ID, by = "from_ID") # all.x = FALSE, allowing this to exclude ppl who do not have a further connection  
+HVIII_court <- unique(rbind(HVII_1degree, HVII_2degree)) # note that this does not include the reciprocated connection
+
+# Should I be subsetting this to a certain year?
+
+graph_HVII <- graph_from_data_frame(HVII_court, directed = FALSE)
+graph_HVIII <- graph_from_data_frame(HVIII_court, directed = FALSE)
+graph_HVII <- simplify(graph_HVII, remove.multiple = TRUE, remove.loops = TRUE)
+graph_HVIII <- simplify(graph_HVIII, remove.multiple = TRUE, remove.loops = TRUE)
+matrix_HVII <- as_adjacency_matrix(graph_HVII, sparse = FALSE)
+matrix_HVIII <- as_adjacency_matrix(graph_HVIII, sparse = FALSE)
+nodes_in_matrix_HVII <- as.data.frame(colnames(matrix_HVII, do.NULL = TRUE, prefix = "col"))
+nodes_in_matrix_HVIII <- as.data.frame(colnames(matrix_HVIII, do.NULL = TRUE, prefix = "col"))
+colnames(nodes_in_matrix_HVII) <- "SDFB Person ID"
+colnames(nodes_in_matrix_HVIII) <- "SDFB Person ID"
+gender_HVII <- merge(nodes_in_matrix_HVII, people[,c("SDFB Person ID", "Gender")]) 
+gender_HVIII <- merge(nodes_in_matrix_HVIII, people[,c("SDFB Person ID", "Gender")]) 
+gender_HVII$Gender[gender_HVII$Gender == "male"] <- 1
+gender_HVII$Gender[gender_HVII$Gender == "female"] <- 0
+gender_HVII$Gender <- as.numeric(gender_HVII$Gender)
+sum(gender_HVII$Gender == 0)
+# Henry VII had 12 women in his court, out of a court of 127
+gender_HVIII$Gender[gender_HVIII$Gender == "male"] <- 1
+gender_HVIII$Gender[gender_HVIII$Gender == "female"] <- 0
+gender_HVIII$Gender <- as.numeric(gender_HVIII$Gender)
+sum(gender_HVIII$Gender == 0)
+# Henry VIII had 14 women, out of a court of 156
+# checking for grouping based on gender
+moran_HVII <- nacf(matrix_HVII, gender_HVII[,2], type = "moran")
+# sum(moran_HVII)/127 = [1] 0.004940715
+moran_HVIII <- nacf(matrix_HVIII, gender_HVIII[,2], type = "moran")
+# > sum(moran_HVIII)/155 = [1] 0.005382852
+
+# ERGM for their networks
+network_HVII <- as.network.matrix(matrix_HVII, directed = F, loops = F)
+network_HVII <- set.vertex.attribute(network_HVII, 'Gender', gender_HVII$Gender, v=seq_len(network.size(network_HVII))) # Were they introducts in the same order? 
+model1 <- ergm(network_HVII ~ edges + triangles) #triangles creates a problem because of the sparcity of triangles
+model1 <- ergm(network50y ~ edges)
+
+
+
+
+
+
+
+
+# Looking at the entire network for a certain years (1550)
 edgelist50y <- edgelist[start_year <= 1550 & end_year > 1550,]
 graph50y <- graph_from_data_frame(edgelist50y[,2:3], directed = FALSE)
 graph50y <- simplify(graph50y, remove.multiple = TRUE, remove.loops = TRUE)
@@ -92,6 +157,8 @@ plogis(coef(model2)[['edges']] + coef(model2)[['nodematch.Gender']])
 # Probability of a tie forming when they are not of the same gender
 plogis(coef(model2)[['edges']])
 0.003873538
+
+
 
 # Triadic closure of the entire network -----------------------------------
 save <- edgelist
