@@ -1,6 +1,8 @@
 library(data.table)
 library(ggplot2)
 library(igraph)
+library(ergm)
+library(intergraph)
 
 groups <- fread("SDFB_groups.csv")
 #View(groups)
@@ -29,32 +31,67 @@ setkeyv(edgelist, c("relation_id", "from_ID", "to_ID"))
 # Rbinding with the from - to swapped in order to have the symetrical relationships
 edgelistT <- edgelist[,c(1,3,2,4,5,6,7,8,9,10)]
 edgelist <- rbind(edgelist, edgelistT)
-dim(edgelist)
+dim(edgelist)   # connections repeating both ways because we are dealing with an undirected network
 edgelist[relationship_type_name %in% c("Rival of", "Enemy of"), enemies := .N,from_ID]
 enemies <- edgelist[relationship_type_name %in% c("Rival of", "Enemy of"),.N,from_ID]
 setkeyv(people, c("SDFB Person ID"))
 setkeyv(enemies, "from_ID")
 people2 <- merge(people, enemies, by.x = "SDFB Person ID", by.y = "from_ID", all.x = TRUE)
 save <- edgelist
-# Homophily ---------------------------------------------------------------
+
+# Homophily on genger and social class (titled/religious/etc.)------------------------------------------------------
 # (https://en.wikipedia.org/wiki/Network_homophily)
 # Homophily = based on node attributes, similar nodes may be more likely to attach to each other than dissimilar ones
 # Homophily in social relations may lead to a commensurate distance in networks leading to the creation of clusters that have been observed in social networking services 
 # Homophily is a key topic in network science as it can determine the speed of the diffusion of information and ideas.
-
 # Is number of cross-gender degrees <=> randomly expected cross-gender degrees
-
 # Calculating the number of cross-gender degrees in a certain year
-
-
-
 # If no homophily, then cross gender edges should be 2*(male/all nodes)*(female/all nodes)
 
+# Looking at a 50 years period in the year 1550
+edgelist50y <- edgelist[start_year <= 1550 & end_year > 1550,]
+graph50y <- graph_from_data_frame(edgelist50y[,2:3], directed = FALSE)
+graph50y <- simplify(graph50y, remove.multiple = TRUE, remove.loops = TRUE)
+matrix50y <- as_adjacency_matrix(graph50y, sparse = FALSE)
+sum(matrix50y)
+nodes_in_matrix <- as.data.frame(colnames(matrix50y, do.NULL = TRUE, prefix = "col"))
+# nodes_in_matrix2 <- as.data.frame(V(graph50y)) - cannot coerse to data frame
+colnames(nodes_in_matrix) <- "SDFB Person ID"
+gender50y <- merge(nodes_in_matrix, people[,c("SDFB Person ID", "Gender")])
+gender50y$Gender[gender50y$Gender == "male"] <- 1  
+gender50y$Gender[gender50y$Gender == "female"] <- 0  
+gender50y$Gender <- as.numeric(gender50y$Gender)
+# Checking if grouping is present through Moran's I 
+#- only descriptive, does not tell us whether that is due to homophily or another reason
+nacf(matrix50y, gender50y[,2], type = "moran")
+
+# End goal - evaluate the whole network for a window of the ruling of each king and the
+# Compare agains the king's court (1st+2nd degree connections) for the same time window
+
+# Get the list of monarch and perform the same calculation for only their court. Time window or both is the ruling(or life) of that monarch
 
 
 
 
+# ERGM analysis of the same time window- again only descriptive
+# add social class once Alex has completed that code
+network50y <- as.network.matrix(matrix50y, directed = F, loops = F)
+network50y <- set.vertex.attribute(network50y, 'Gender', gender50y$Gender, v=seq_len(network.size(network50y))) # Were they introducts in the same order? 
+model1 <- ergm(network50y ~ edges + triangles) #triangles creates a problem because of the sparcity of triangles
+model1 <- ergm(network50y ~ edges)
+# Number of edges in a simulated network exceeds that in the observed by a factor of more than 20. This is a strong indicator of model degeneracy or a very poor starting parameter configuration. 
+# Degeneracy in a linear programming problem is said to occur when a basic feasible solution contains a smaller number of non-zero variables than the number of independent constraints when values of some basic variables are zero and the Replacement ratio is same.
+model2 <- ergm(network50y ~ edges + nodematch("Gender", diff = FALSE))
+summary(model2)
+summary(model1)
 
+# Converting log odds to conditional probability of a tie forming when they are of the same gender
+coef(model2)
+plogis(coef(model2)[['edges']] + coef(model2)[['nodematch.Gender']])
+0.005484331
+# Probability of a tie forming when they are not of the same gender
+plogis(coef(model2)[['edges']])
+0.003873538
 
 # Triadic closure of the entire network -----------------------------------
 save <- edgelist
